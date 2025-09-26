@@ -1,0 +1,8 @@
+{
+    "name": "SampleModule",
+    "description": "A sample module for testing",
+    "version": "1.0.0",
+    "namespace": "App\\Modules\\notifications",
+    "author": "Your Name",
+    "icon": "fas fa-cube"
+}

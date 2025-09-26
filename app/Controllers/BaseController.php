@@ -12,12 +12,7 @@ use Psr\Log\LoggerInterface;
 /**
  * Class BaseController
  *
- * BaseController provides a convenient place for loading components
- * and performing functions that are needed by all your controllers.
- * Extend this class in any new controllers:
- *     class Home extends BaseController
- *
- * For security be sure to declare any new methods as protected or private.
+ * Provides a global HMVC-friendly view loader for Core and Module views.
  */
 abstract class BaseController extends Controller
 {
@@ -30,29 +25,89 @@ abstract class BaseController extends Controller
 
     /**
      * An array of helpers to be loaded automatically upon
-     * class instantiation. These helpers will be available
-     * to all other controllers that extend BaseController.
+     * class instantiation.
      *
      * @var list<string>
      */
     protected $helpers = [];
 
     /**
-     * Be sure to declare properties for any property fetch you initialized.
-     * The creation of dynamic property is deprecated in PHP 8.2.
+     * Absolute path to Core views.
+     *
+     * @var string
      */
-    // protected $session;
+    protected $coreViewPath;
+
+    /**
+     * Array of module view paths.
+     *
+     * @var array
+     */
+    protected $modulePaths = [];
 
     /**
      * @return void
      */
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        // Do Not Edit This Line
         parent::initController($request, $response, $logger);
 
-        // Preload any models, libraries, etc, here.
+        // Initialize Core views path
+        $this->coreViewPath = APPPATH . 'Core/Views/';
 
-        // E.g.: $this->session = service('session');
+        // Automatically register all modules
+        $modulesDir = APPPATH . 'Modules/';
+        $modules = scandir($modulesDir);
+
+        foreach ($modules as $module) {
+            if ($module === '.' || $module === '..') continue;
+            $this->modulePaths[$module] = $modulesDir . $module . '/Views/';
+        }
+    }
+
+    /**
+     * Load a view from Core views
+     *
+     * @param string $view
+     * @param array $data
+     * @return string
+     */
+    protected function coreView(string $view, array $data = []): string
+    {
+        $file = $this->coreViewPath . $view . '.php';
+        if (! file_exists($file)) {
+            throw new \RuntimeException("Core view not found: {$file}");
+        }
+
+        $coreViewPath = $this->coreViewPath; // make path available in view
+        extract($data);
+        ob_start();
+        include $file;
+        return ob_get_clean();
+    }
+
+    /**
+     * Load a view from a module
+     *
+     * @param string $module
+     * @param string $view
+     * @param array $data
+     * @return string
+     */
+    protected function moduleView(string $module, string $view, array $data = []): string
+    {
+        if (!isset($this->modulePaths[$module])) {
+            throw new \RuntimeException("Module not registered: {$module}");
+        }
+
+        $file = $this->modulePaths[$module] . $view . '.php';
+        if (! file_exists($file)) {
+            throw new \RuntimeException("Module view not found: {$file}");
+        }
+        $coreViewPath = $this->coreViewPath; // make path available in view
+        extract($data);
+        ob_start();
+        include $file;
+        return ob_get_clean();
     }
 }

@@ -1,0 +1,185 @@
+namespace App\Core\Services;
+
+use App\Core\Models\AuthGroupsUsersModel;
+use App\Core\Models\AuthGroupsPermissionsModel;
+
+class RBAC
+{
+    protected $groupsUsersModel;
+    protected $groupsPermissionsModel;
+
+    public function __construct()
+    {
+        $this->groupsUsersModel = new AuthGroupsUsersModel();
+        $this->groupsPermissionsModel = new AuthGroupsPermissionsModel();
+    }
+
+    public function getUserRoles(int $userId): array
+    {
+        return $this->groupsUsersModel
+            ->where('user_id', $userId)
+            ->findAll() ? array_column(
+                $this->groupsUsersModel->where('user_id', $userId)->findAll(),
+                'group'
+            ) : [];
+    }
+
+    public function roleHasPermission(string $role, string $permission): bool
+    {
+        return (bool) $this->groupsPermissionsModel
+            ->where('group', $role)
+            ->where('permission', $permission)
+            ->first();
+    }
+
+    public function userHasPermission(int $userId, string $permission): bool
+    {
+        $roles = $this->getUserRoles($userId);
+
+        log_message('debug', "Checking permission: {$permission} for user {$userId} with roles " . json_encode($roles));
+
+        // ✅ Always allow admin role
+        if (in_array('admin', array_map('strtolower', $roles))) {
+            return true;
+        }
+
+        foreach ($roles as $role) {
+            if ($this->roleHasPermission($role, $permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public function getAllRoles(): array
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_groups')
+            ->select('*')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getUsersByRole(string $role): array
+    {
+        return $this->groupsUsersModel
+            ->where('group', $role)
+            ->findAll() ?: [];
+    }
+
+    public function getAllPermissions(): array
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_permissions')
+            ->select('*')
+            ->get()
+            ->getResultArray();
+    }
+
+    public function getRoleById(int $id): ?array
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_groups')
+            ->where('id', $id)
+            ->get()
+            ->getRowArray();
+    }
+
+    public function createRole(array $data): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_groups')->insert($data);
+    }
+
+    public function updateRole(int $id, array $data): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_groups')
+            ->where('id', $id)
+            ->update($data);
+    }
+
+    public function deleteRole(int $id): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_groups')
+            ->where('id', $id)
+            ->delete();
+    }
+
+    public function getPermissionById(int $id): ?array
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_permissions')
+            ->where('id', $id)
+            ->get()
+            ->getRowArray();
+    }
+
+    public function createPermission(array $data): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_permissions')->insert($data);
+    }
+
+    public function updatePermission(int $id, array $data): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_permissions')
+            ->where('id', $id)
+            ->update($data);
+    }
+
+    public function deletePermission(int $id): bool
+    {
+        $db = \Config\Database::connect();
+        return $db->table('auth_permissions')
+            ->where('id', $id)
+            ->delete();
+    }
+
+    public function getRolePermissionsByName(string $role): array
+    {
+        return $this->groupsPermissionsModel
+            ->where('group', $role)
+            ->findAll() ?: [];
+    }
+
+    public function resetRolePermissions(string $role): bool
+    {
+        return $this->groupsPermissionsModel
+            ->where('group', $role)
+            ->delete() !== false;
+    }
+
+    public function assignPermissionToRole(string $role, string $permission): bool
+    {
+        return $this->groupsPermissionsModel->insert([
+            'group' => $role,
+            'permission' => $permission
+        ]);
+    }
+
+    public function getUser(int $userId): ?object
+    {
+        $userModel = new \App\Models\UserModel();
+        return $userModel->find($userId);
+    }
+
+    public function assignRoleToUser(int $userId, string $role): bool
+    {
+        return $this->groupsUsersModel->insert([
+            'user_id' => $userId,
+            'group' => $role
+        ]);
+    }
+
+    public function removeRoleFromUser(int $userId, string $role): bool
+    {
+        return $this->groupsUsersModel
+            ->where('user_id', $userId)
+            ->where('group', $role)
+            ->delete() !== false;
+    }
+}

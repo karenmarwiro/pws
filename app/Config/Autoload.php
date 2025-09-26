@@ -40,6 +40,7 @@ class Autoload extends AutoloadConfig
     public $psr4 = [
         APP_NAMESPACE => APPPATH,
                 'Config' => APPPATH . 'Config',
+                'Core' => APPPATH . 'Core',
                 'App'    => APPPATH,  
     'CodeIgniter\Shield' => ROOTPATH . 'vendor/codeigniter4/shield/src',
     ];
@@ -91,5 +92,7 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public $helpers = ['auth','setting'];
+    public $helpers = ['auth', 'setting', 'module'];
+
+    
 }

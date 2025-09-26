@@ -5,22 +5,36 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+
+
+// Authentication routes
 service('auth')->routes($routes);
 $routes->get('auth/redirect/github', 'GithubAuthController::redirect');
 $routes->get('auth/callback/github', 'GithubAuthController::callback');
 
-
-// Admin routes
-$routes->group('admin', ['namespace' => 'App\Controllers\Admin'], function($routes) {
-    // Authentication routes
-    $routes->get('login', 'Auth::login', ['as' => 'admin.login']);
-    $routes->post('login', 'Auth::login');
-    $routes->get('logout', 'Auth::logout', ['as' => 'admin.logout']);
-    
-    // Protected admin routes
-    $routes->group('', ['filter' => 'session'], function($routes) {
-        $routes->get('dashboard', 'Auth::dashboard', ['as' => 'admin.dashboard']);
-        // Add more protected admin routes here
-    });
+$routes->group('auth', ['namespace' => 'App\Controllers'], static function ($routes) {
+    $routes->get('login', 'LoginController::loginView');
+    $routes->post('login', 'LoginController::loginAction');
+    $routes->get('logout', 'LoginController::logoutAction');
 });
+
+// Load Core routes
+require APPPATH . 'Core/Config/Routes.php';
+
+// Autoload module routes
+$modulesPath = APPPATH . 'Modules/';
+$modules = array_diff(scandir($modulesPath), ['.', '..','...', '.DS_Store']);
+
+foreach ($modules as $module) {
+    $modulePath = $modulesPath . $module;
+    if (is_dir($modulePath)) {
+        $routesFile = $modulePath . '/Config/Routes.php';
+        if (file_exists($routesFile)) {
+            require $routesFile;
+        }
+    }
+}
+
+
+
+

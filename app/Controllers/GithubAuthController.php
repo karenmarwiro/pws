@@ -8,7 +8,6 @@ use CodeIgniter\Shield\Authentication\Authenticators\Session as SessionAuthentic
 use CodeIgniter\Shield\Entities\User;
 use League\OAuth2\Client\Provider\Github;
 use League\OAuth2\Client\Provider\GithubResourceOwner;
-use CodeIgniter\Shield\Authentication\Authenticators\Session as SessionAuthenticator;
 
 class GithubAuthController extends BaseController
 {

@@ -12,6 +12,9 @@ use CodeIgniter\Filters\InvalidChars;
 use CodeIgniter\Filters\PageCache;
 use CodeIgniter\Filters\PerformanceMetrics;
 use CodeIgniter\Filters\SecureHeaders;
+use CodeIgniter\Shield\Filters\SessionAuth;
+use CodeIgniter\Shield\Filters\TokenAuth;
+
 
 
 class Filters extends BaseFilters
@@ -36,9 +39,12 @@ class Filters extends BaseFilters
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
 
-         // ✅ Shield filters
-        'login'       => SessionAuth::class,
-        'token'       => TokenAuth::class,
+        // Authentication filters
+        'auth'          => 'login', // Alias for the auth filter
+        
+        // ✅ Shield filters
+        'login'         => SessionAuth::class,
+        'token'         => TokenAuth::class,
     ];
 
     /**
