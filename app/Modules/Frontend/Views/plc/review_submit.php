@@ -327,23 +327,29 @@
         </tbody>
     </table>
 </div>
+ <!-- Action buttons -->
+                <div class="d-flex justify-content-between action-buttons mt-5">
+                    <a href="<?= site_url('frontend/plc/directors-shareholders') ?>" class="btn btn-outline-secondary px-4">
+                        <i class="fas fa-arrow-left me-2"></i> Back
+                    </a>
+                    <form action="<?= site_url('frontend/plc/submit-final') ?>" method="post">
+                        <?= csrf_field() ?>
+                        
+                        <!-- You can optionally show a checkbox: "I confirm all details are correct" -->
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" name="confirm" id="confirm" required>
+                            <label class="form-check-label" for="confirm">
+                                I confirm that all information provided is correct.
+                            </label>
+                        </div>
 
+                        <button type="submit" class="btn btn-primary">
+                            Submit Application
+                        </button>
+                    </form>
 
-                <!-- Action buttons -->
-                <div>
-        <div class="form-check mb-2">
-            <input class="form-check-input" type="checkbox" name="confirm" id="confirm" required>
-            <label class="form-check-label" for="confirm">
-                I confirm all details are correct.
-            </label>
-        </div>
-        <button type="submit" class="btn btn-primary btn-sm">
-            Submit Application
-        </button>
-    </div>
-</div>
-            </div>
-        </div>
+                     
+                </div>
 
                 <div class="text-center mt-4">
                     <div class="progress mt-4" style="height: 8px;">

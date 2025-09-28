@@ -38,41 +38,51 @@ class Pbc extends AdminController
         ]);
     }
 
-    public function getApplications()
-    {
-        $status = $this->request->getGet('status') ?? 'all';
+   public function getApplications()
+{
+    $status = $this->request->getGet('status') ?? 'all';
 
-        if ($status !== 'all') {
-            $applications = $this->pbcApplicationModel->where('status', $status)
-                                ->orderBy('created_at', 'DESC')
-                                ->findAll();
-        } else {
-            $applications = $this->pbcApplicationModel->orderBy('created_at', 'DESC')
-                                ->findAll();
-        }
-
-        // Decode submitted_data + fetch reference number
-        $applications = array_map(function ($app) {
-            $submitted = json_decode($app['submitted_data'], true);
-
-            $personal = $submitted['personal_details'] ?? [];
-            $company  = $submitted['company_details'] ?? [];
-
-            // Fetch reference_number from applications table
-            $applicationRow = $this->applicationsModel->find($app['application_id']);
-
-            $app['reference_number'] = $applicationRow['reference_number'] ?? 'N/A';
-            $app['applicant_name']   = trim(($personal['first_name'] ?? '') . ' ' . ($personal['last_name'] ?? ''));
-            $app['business_name']    = $company['proposed_name_one'] ?? 'N/A';
-
-            return $app;
-        }, $applications);
-
-        return view('App\Modules\Pbc\Views\application_list', [
-            'applications' => $applications,
-            'status'       => $status
-        ]);
+    if ($status === 'pending') {
+        // Include both 'pending' and 'processing'
+        $applications = $this->pbcApplicationModel
+                             ->whereIn('status', ['pending', 'processing'])
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
+    } elseif ($status === 'approved') {
+        $applications = $this->pbcApplicationModel
+                             ->where('status', 'approved')
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
+    } else {
+        // All applications
+        $applications = $this->pbcApplicationModel
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
     }
+
+    // Decode submitted_data + fetch reference number
+    $applications = array_map(function ($app) {
+        $submitted = json_decode($app['submitted_data'], true);
+
+        $personal = $submitted['personal_details'] ?? [];
+        $company  = $submitted['company_details'] ?? [];
+
+        // Fetch reference_number from applications table
+        $applicationRow = $this->applicationsModel->find($app['application_id']);
+
+        $app['reference_number'] = $applicationRow['reference_number'] ?? 'N/A';
+        $app['applicant_name']   = trim(($personal['first_name'] ?? '') . ' ' . ($personal['last_name'] ?? ''));
+        $app['business_name']    = $company['proposed_name_one'] ?? 'N/A';
+
+        return $app;
+    }, $applications);
+
+    return view('App\Modules\Pbc\Views\application_list', [
+        'applications' => $applications,
+        'status'       => $status
+    ]);
+}
+
 
     public function view($id = null)
     {
@@ -258,6 +268,17 @@ public function shareholder($id = null)
 
         return redirect()->to(site_url('pbc'))
                          ->with('message', 'Application and related records deleted successfully.');
+    }
+
+
+    public function pendingApplications()
+    {
+        $data['applications'] = $this->applicationsModel
+            ->whereIn('status', ['pending', 'processing'])
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        return view('App\Modules\Pbc\Views\pending_applications', $data);
     }
 
     

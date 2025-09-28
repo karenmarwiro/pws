@@ -38,43 +38,52 @@ class Plc extends AdminController
         ]);
     }
 
-    public function getApplications()
-    {
-        $status = $this->request->getGet('status') ?? 'all';
+   public function getApplications()
+{
+    $status = $this->request->getGet('status') ?? 'all';
 
-        if ($status !== 'all') {
-            $applications = $this->plcApplicationModel->where('status', $status)
-                                ->orderBy('created_at', 'DESC')
-                                ->findAll();
-        } else {
-            $applications = $this->plcApplicationModel->orderBy('created_at', 'DESC')
-                                ->findAll();
-        }
-
-        // Decode submitted_data + fetch reference number
-        $applications = array_map(function ($app) {
-            $submitted = json_decode($app['submitted_data'], true);
-
-            $personal = $submitted['personal_details'] ?? [];
-            $company  = $submitted['company_details'] ?? [];
-
-            // Fetch reference_number from applications table
-            $applicationRow = $this->applicationsModel->find($app['application_id']);
-
-            $app['reference_number'] = $applicationRow['reference_number'] ?? 'N/A';
-            $app['applicant_name']   = trim(($personal['first_name'] ?? '') . ' ' . ($personal['last_name'] ?? ''));
-            $app['business_name']    = $company['proposed_name_one'] ?? 'N/A';
-
-            return $app;
-        }, $applications);
-
-        return view('App\Modules\Plc\Views\application_list', [
-            'applications' => $applications,
-            'status'       => $status
-        ]);
+    if ($status === 'pending') {
+        // Include both 'pending' and 'processing'
+        $applications = $this->plcApplicationModel
+                             ->whereIn('status', ['pending', 'processing'])
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
+    } elseif ($status === 'approved') {
+        $applications = $this->plcApplicationModel
+                             ->where('status', 'approved')
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
+    } else {
+        // All applications
+        $applications = $this->plcApplicationModel
+                             ->orderBy('created_at', 'DESC')
+                             ->findAll();
     }
 
-    public function view($id = null)
+    // Decode submitted_data + fetch reference number
+    $applications = array_map(function ($app) {
+        $submitted = json_decode($app['submitted_data'], true);
+
+        $personal = $submitted['personal_details'] ?? [];
+        $company  = $submitted['company_details'] ?? [];
+
+        // Fetch reference_number from applications table
+        $applicationRow = $this->applicationsModel->find($app['application_id']);
+
+        $app['reference_number'] = $applicationRow['reference_number'] ?? 'N/A';
+        $app['applicant_name']   = trim(($personal['first_name'] ?? '') . ' ' . ($personal['last_name'] ?? ''));
+        $app['business_name']    = $company['proposed_name_one'] ?? 'N/A';
+
+        return $app;
+    }, $applications);
+
+    return view('App\Modules\Plc\Views\application_list', [
+        'applications' => $applications,
+        'status'       => $status
+    ]);
+}
+
+   public function view($id = null)
     {
         $application = $this->plcApplicationModel->find($id);
 
