@@ -28,7 +28,7 @@ class PlcController extends Controller
     }
 
     /** Step 0: Start Application */
-    public function startApplication()
+     public function startApplication()
 {
     $userId = auth()->id();
 
@@ -37,13 +37,21 @@ class PlcController extends Controller
                          ->with('error', 'Please login before starting an application.');
     }
 
-    $referenceNumber = 'PLC-' . strtoupper(uniqid());
+    // Generate structured reference number
+    $datePart = date('ymd'); // YYMMDD, e.g., 250927
+    $countToday = $this->applicationsModel
+                       ->where('DATE(created_at)', date('Y-m-d'))
+                       ->countAllResults();
+    $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
+    $referenceNumber = 'PLC-' . $datePart . '-' . $sequence;
 
+    // Insert new application
     $this->applicationsModel->insert([
         'user_id'             => $userId,
         'application_type_id' => 1,
         'status'              => 'pending',
-        'reference_number'    => $referenceNumber
+        'reference_number'    => $referenceNumber,
+        'created_at'          => date('Y-m-d H:i:s'),
     ]);
 
     $applicationId = $this->applicationsModel->getInsertID();
@@ -177,6 +185,22 @@ class PlcController extends Controller
         return redirect()->back()->with('error', 'No shareholders submitted.');
     }
 
+    // Check for duplicate National IDs
+    $ids = [];
+    foreach ($shareholders as $shareholder) {
+        $nid = trim($shareholder['national_id'] ?? '');
+        if (empty($nid)) {
+            return redirect()->back()->withInput()
+                             ->with('error', 'National ID is required for all shareholders.');
+        }
+        if (in_array($nid, $ids)) {
+            return redirect()->back()->withInput()
+                             ->with('error', 'Each shareholder must have a unique National ID. Duplicate found: ' . $nid);
+        }
+        $ids[] = $nid;
+    }
+
+    // Insert shareholders
     foreach ($shareholders as $shareholder) {
         $this->shareholderModel->insert([
             'application_id'      => $applicationId,

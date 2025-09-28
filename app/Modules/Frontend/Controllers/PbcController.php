@@ -28,7 +28,7 @@ class PbcController extends Controller
     }
 
     /** Step 0: Start Application */
-    public function startApplication()
+  public function startApplication()
 {
     $userId = auth()->id();
 
@@ -37,13 +37,21 @@ class PbcController extends Controller
                          ->with('error', 'Please login before starting an application.');
     }
 
-    $referenceNumber = 'PBC-' . strtoupper(uniqid());
+    // Generate structured reference number
+    $datePart = date('ymd'); // YYMMDD, e.g., 250927
+    $countToday = $this->applicationsModel
+                       ->where('DATE(created_at)', date('Y-m-d'))
+                       ->countAllResults();
+    $sequence = str_pad($countToday + 1, 4, '0', STR_PAD_LEFT);
+    $referenceNumber = 'PBC-' . $datePart . '-' . $sequence;
 
+    // Insert new application
     $this->applicationsModel->insert([
         'user_id'             => $userId,
         'application_type_id' => 1,
         'status'              => 'pending',
-        'reference_number'    => $referenceNumber
+        'reference_number'    => $referenceNumber,
+        'created_at'          => date('Y-m-d H:i:s'),
     ]);
 
     $applicationId = $this->applicationsModel->getInsertID();
@@ -51,6 +59,7 @@ class PbcController extends Controller
 
     return redirect()->to(site_url('frontend/pbc/personal-details'));
 }
+
 
 
     /** Step 1: Personal Details Form */
@@ -162,7 +171,7 @@ class PbcController extends Controller
     {
         return view('App\Modules\Frontend\Views\pbc\directors_shareholders');
     }
-    public function processShareholders()
+   public function processShareholders()
 {
     $applicationId = session()->get('application_id');
     $personalId    = session()->get('personal_id');
@@ -177,6 +186,35 @@ class PbcController extends Controller
         return redirect()->back()->with('error', 'No shareholders submitted.');
     }
 
+    $ids = [];
+    $totalShares = 0;
+
+    foreach ($shareholders as $shareholder) {
+        $nid = trim($shareholder['national_id'] ?? '');
+        $share = floatval($shareholder['shareholding'] ?? 0);
+
+        // Check National ID uniqueness
+        if (empty($nid)) {
+            return redirect()->back()->withInput()
+                             ->with('error', 'National ID is required for all shareholders.');
+        }
+        if (in_array($nid, $ids)) {
+            return redirect()->back()->withInput()
+                             ->with('error', 'Each shareholder must have a unique National ID. Duplicate found: ' . $nid);
+        }
+        $ids[] = $nid;
+
+        // Sum shares
+        $totalShares += $share;
+    }
+
+    // Check if total shareholding exceeds 100%
+    if ($totalShares > 100) {
+        return redirect()->back()->withInput()
+                         ->with('error', 'Total shareholding cannot exceed 100%. Currently: ' . $totalShares . '%');
+    }
+
+    // Insert shareholders
     foreach ($shareholders as $shareholder) {
         $this->shareholderModel->insert([
             'application_id'      => $applicationId,
@@ -194,6 +232,7 @@ class PbcController extends Controller
     return redirect()->to(site_url('frontend/pbc/review-submit'))
                      ->with('message', 'Shareholders saved successfully!');
 }
+
 
 
     public function reviewSubmit()

@@ -122,6 +122,19 @@
                         <h4><i class="fas fa-users me-2"></i> Directors & Shareholders</h4>
                         <p class="mb-0">Step 3 of 4 - Add company directors and shareholders</p>
                     </div>
+
+                    <?php if(session()->has('error')): ?>
+                        <div class="alert alert-danger">
+                            <?= session('error') ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if(session()->has('message')): ?>
+                        <div class="alert alert-success">
+                            <?= session('message') ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <div class="card-body">
                         <form id="shareholdersForm" 
                               action="<?= site_url('frontend/plc/process-shareholders') ?>" 

@@ -551,13 +551,6 @@
             <p>Track the progress of your company registrations</p>
             <a href="#registrations" class="btn-dashboard">View Registrations</a>
           </div>
-          
-          <div class="dashboard-card">
-            <i class="fas fa-cogs"></i>
-            <h3>Account Settings</h3>
-            <p>Manage your account preferences and settings</p>
-            <a href="#settings" class="btn-dashboard">Account Settings</a>
-          </div>
         </div>
         
         <!-- Application Process -->
