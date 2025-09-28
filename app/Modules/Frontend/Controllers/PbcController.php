@@ -189,7 +189,7 @@ class PbcController extends Controller
     $ids = [];
     $totalShares = 0;
 
-    foreach ($shareholders as $shareholder) {
+    foreach ($shareholders as $i => $shareholder) {
         $nid = trim($shareholder['national_id'] ?? '');
         $share = floatval($shareholder['shareholding'] ?? 0);
 
@@ -208,15 +208,14 @@ class PbcController extends Controller
         $totalShares += $share;
     }
 
-    // Check if total shareholding exceeds 100%
     if ($totalShares > 100) {
         return redirect()->back()->withInput()
                          ->with('error', 'Total shareholding cannot exceed 100%. Currently: ' . $totalShares . '%');
     }
 
     // Insert shareholders
-    foreach ($shareholders as $shareholder) {
-        $this->shareholderModel->insert([
+    foreach ($shareholders as $i => $shareholder) {
+        $data = [
             'application_id'      => $applicationId,
             'personal_details_id' => $personalId,
             'full_name'           => $shareholder['full_name'] ?? '',
@@ -226,12 +225,87 @@ class PbcController extends Controller
             'email'               => $shareholder['email'] ?? '',
             'phone_number'        => $shareholder['phone_number'] ?? '',
             'is_director'         => !empty($shareholder['is_director']) ? 1 : 0,
-        ]);
+            'gender'              => $shareholder['gender'] ?? '',
+            'date_of_birth'       => $shareholder['date_of_birth'] ?? null,
+            'residential_address' => $shareholder['residential_address'] ?? '',
+            'marital_status'      => $shareholder['marital_status'] ?? '',
+            'city'                => $shareholder['city'] ?? '',
+            'is_beneficial_owner' => !empty($shareholder['is_beneficial_owner']) ? 1 : 0,
+        ];
+
+        // Ensure upload directory exists and is writable
+        $uploadPath = WRITEPATH . 'uploads/shareholders';
+        if (!is_dir($uploadPath)) {
+            mkdir($uploadPath, 0777, true);
+        }
+
+        if (!is_writable($uploadPath)) {
+            log_message('error', 'Upload directory is not writable: ' . $uploadPath);
+            return redirect()->back()->with('error', 'Server error: Upload directory is not writable');
+        }
+
+        // Handle file uploads
+        $fileFields = [
+            'id_document',
+            'proof_of_residence',
+            'passport_photo',
+            'proof_of_address',
+            'share_certificate',
+            'company_registration_doc'
+        ];
+
+        foreach ($fileFields as $field) {
+            $file = $this->request->getFile("shareholders[$i][$field]");
+            log_message('debug', "Processing file field: {$field}");
+            log_message('debug', 'File info: ' . print_r($file, true));
+            
+            if ($file === null) {
+                log_message('debug', 'No file was uploaded for field: ' . $field);
+                continue;
+            }
+            
+            if (!$file->isValid()) {
+                $error = $file->getErrorString() ?? 'Unknown error';
+                log_message('error', "File validation failed for {$field}: {$error}");
+                log_message('debug', 'File error code: ' . $file->getError());
+                continue;
+            }
+            
+            if ($file->hasMoved()) {
+                log_message('warning', 'File has already been moved: ' . $file->getName());
+                continue;
+            }
+            
+            $newName = $file->getRandomName();
+            log_message('debug', 'Attempting to move file to: ' . $uploadPath . '/' . $newName);
+            
+            try {
+                $file->move($uploadPath, $newName);
+                
+                if ($file->hasMoved()) {
+                    $data[$field] = $newName;
+                    log_message('info', 'File uploaded successfully: ' . $newName . ' (Original: ' . $file->getName() . ')');
+                    log_message('debug', 'File size: ' . $file->getSize() . ' bytes');
+                    log_message('debug', 'File MIME type: ' . $file->getMimeType());
+                } else {
+                    $error = $file->getErrorString() ?? 'Unknown error';
+                    log_message('error', 'Failed to move uploaded file: ' . $error);
+                    log_message('debug', 'Upload path: ' . $uploadPath);
+                    log_message('debug', 'Is writable: ' . (is_writable($uploadPath) ? 'Yes' : 'No'));
+                }
+            } catch (\Exception $e) {
+                log_message('error', 'File upload exception: ' . $e->getMessage());
+                log_message('debug', 'Exception trace: ' . $e->getTraceAsString());
+            }
+        }
+
+        $this->shareholderModel->insert($data);
     }
 
     return redirect()->to(site_url('frontend/pbc/review-submit'))
                      ->with('message', 'Shareholders saved successfully!');
 }
+
 
 
 

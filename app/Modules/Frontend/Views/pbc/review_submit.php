@@ -293,6 +293,7 @@
         <i class="fas fa-edit"></i> Edit
     </a>
 </h5>
+
 <div class="table-responsive">
     <table class="table shareholders-table">
         <thead>
@@ -301,9 +302,21 @@
                 <th>Full Name</th>
                 <th>ID/Passport</th>
                 <th>Nationality</th>
+                <th>Gender</th>
+                <th>DOB</th>
+                <th>Residential Address</th>
+                <th>Marital Status</th>
+                <th>City</th>
                 <th>Email</th>
+                <th>Phone</th>
                 <th>Shareholding</th>
                 <th>Director</th>
+                <th>Beneficial Owner</th>
+                <th>ID Document</th>
+                <th>Proof of Residence</th>
+                <th>Passport Photo</th>
+                <th>Share Certificate</th>
+                <th>Company Reg. Doc</th>
             </tr>
         </thead>
         <tbody>
@@ -313,13 +326,51 @@
                     <td><?= esc($s['full_name']) ?></td>
                     <td><?= esc($s['national_id']) ?></td>
                     <td><?= esc($s['nationality']) ?></td>
+                    <td><?= esc($s['gender'] ?? '') ?></td>
+                    <td><?= esc($s['date_of_birth'] ?? '') ?></td>
+                    <td><?= esc($s['residential_address'] ?? '') ?></td>
+                    <td><?= esc($s['marital_status'] ?? '') ?></td>
+                    <td><?= esc($s['city'] ?? '') ?></td>
                     <td><?= esc($s['email']) ?></td>
+                    <td><?= esc($s['phone_number'] ?? '') ?></td>
                     <td><strong><?= esc($s['shareholding']) ?>%</strong></td>
                     <td>
-                        <?php if ($s['is_director']): ?>
+                        <?php if (!empty($s['is_director'])): ?>
                             <span class="badge badge-dir">Yes</span>
                         <?php else: ?>
                             <span class="text-muted">No</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['is_beneficial_owner'])): ?>
+                            <span class="badge bg-success">Yes</span>
+                        <?php else: ?>
+                            <span class="text-muted">No</span>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['id_document'])): ?>
+                            <a href="<?= base_url('uploads/shareholders/' . $s['id_document']) ?>" target="_blank">View</a>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['proof_of_residence'])): ?>
+                            <a href="<?= base_url('uploads/shareholders/' . $s['proof_of_residence']) ?>" target="_blank">View</a>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['passport_photo'])): ?>
+                            <a href="<?= base_url('uploads/shareholders/' . $s['passport_photo']) ?>" target="_blank">View</a>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['share_certificate'])): ?>
+                            <a href="<?= base_url('uploads/shareholders/' . $s['share_certificate']) ?>" target="_blank">View</a>
+                        <?php endif; ?>
+                    </td>
+                    <td>
+                        <?php if (!empty($s['company_registration_doc'])): ?>
+                            <a href="<?= base_url('uploads/shareholders/' . $s['company_registration_doc']) ?>" target="_blank">View</a>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -327,6 +378,7 @@
         </tbody>
     </table>
 </div>
+
 
 
                 <!-- Action buttons -->
