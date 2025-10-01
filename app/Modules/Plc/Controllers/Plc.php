@@ -168,44 +168,80 @@ public function update($id = null)
         return redirect()->to(site_url('plc'))->with('error', 'Application not found.');
     }
 
-    $data = $this->request->getPost();
+    $post  = $this->request->getPost();
+    $files = $this->request->getFiles();
 
-    if (!$data) {
+    if (!$post) {
         return redirect()->back()->with('error', 'No data submitted.');
     }
 
-    // Decode existing submitted_data or initialize empty array
-    $existing = json_decode($application['submitted_data'] ?? '{}', true);
-
-    // Merge recursively while keeping nested arrays intact
-    $updatedData = $this->array_merge_recursive_distinct($existing, $data);
-
-    // Encode back to JSON and save
-    $application['submitted_data'] = json_encode($updatedData);
-
-    if ($this->applicationsModel->update($id, $application)) {
-        return redirect()->to(site_url('plc/view/' . $id))
-                         ->with('message', 'Application updated successfully!');
+    // ---------- 1. Personal Details ----------
+    $personalId = null;
+    if (!empty($post['personal_details']['id'])) {
+        $personalId = $post['personal_details']['id'];
+        $personalData = $post['personal_details'];
+        unset($personalData['id']);
+        $this->personalModel->update($personalId, $personalData);
     } else {
-        return redirect()->back()->with('error', 'Failed to update application.');
+        $personalId = $this->personalModel->insert($post['personal_details']);
     }
-}
 
-// --- Add this helper function inside the controller ---
-private function array_merge_recursive_distinct(array $array1, array $array2)
-{
-    $merged = $array1;
+    // ---------- 2. Company Details ----------
+    $companyId = null;
+    if (!empty($post['company_details']['id'])) {
+        $companyId = $post['company_details']['id'];
+        $companyData = $post['company_details'];
+        unset($companyData['id']);
+        $this->companyModel->update($companyId, $companyData);
+    } else {
+        $companyId = $this->companyModel->insert($post['company_details']);
+    }
 
-    foreach ($array2 as $key => $value) {
-        if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
-            $merged[$key] = $this->array_merge_recursive_distinct($merged[$key], $value);
-        } else {
-            $merged[$key] = $value;
+    // ---------- 3. Shareholders ----------
+    if (!empty($post['shareholders'])) {
+        foreach ($post['shareholders'] as $i => $s) {
+            $shareholderId = $s['id'] ?? null;
+            $updateData = $s;
+            unset($updateData['id']);
+
+            // Required foreign keys
+            $updateData['personal_details_id'] = $personalId;
+            $updateData['application_id'] = $application['application_id'] ?? $id;
+
+            // Checkboxes
+            $updateData['is_director'] = !empty($updateData['is_director']) ? 1 : 0;
+            $updateData['is_beneficial_owner'] = !empty($updateData['is_beneficial_owner']) ? 1 : 0;
+
+            // ---------- Handle file uploads ----------
+            if (!empty($files['shareholders'][$i])) {
+                foreach ($files['shareholders'][$i] as $field => $file) {
+                    if ($file->isValid() && !$file->hasMoved()) {
+                        $newName = $file->getRandomName();
+                        $file->move(WRITEPATH . 'uploads/shareholders/', $newName);
+                        $updateData[$field] = $newName;
+                    }
+                }
+            }
+
+            if ($shareholderId) {
+                $this->shareholderModel->update($shareholderId, $updateData);
+            } else {
+                $this->shareholderModel->insert($updateData);
+            }
         }
     }
 
-    return $merged;
+    // ---------- 4. Update main application record ----------
+    $this->plcApplicationModel->update($id, [
+        'personal_details_id' => $personalId,
+        'company_details_id'  => $companyId,
+        'updated_at'          => date('Y-m-d H:i:s'),
+    ]);
+
+    return redirect()->to(site_url('plc/view/' . $id))
+                     ->with('message', 'Application updated successfully!');
 }
+
 
 public function shareholder($id = null)
 {

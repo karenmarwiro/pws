@@ -62,88 +62,120 @@
             <?php endforeach; ?>
         </div>
 
-        <!-- Shareholders Table -->
-<h5 class="mt-4">Shareholders</h5>
-<?php if (!empty($shareholders)): ?>
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped align-middle">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Full Name</th>
-                    <th>ID/Passport</th>
-                    <th>Email</th>
-                    <th>Phone</th>
-                    <th>Shareholding %</th>
-                    <th>Director</th>
-                    <th>Documents</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach ($shareholders as $i => $s): ?>
-                    <tr>
-                        <td><?= $i + 1 ?></td>
-                        <td>
-                            <input type="text" name="shareholders[<?= $i ?>][full_name]" 
-                                   value="<?= esc($s['full_name'] ?? '') ?>" class="form-control">
-                        </td>
-                        <td>
-                            <input type="text" name="shareholders[<?= $i ?>][national_id]" 
-                                   value="<?= esc($s['national_id'] ?? '') ?>" class="form-control">
-                        </td>
-                        <td>
-                            <input type="email" name="shareholders[<?= $i ?>][email]" 
-                                   value="<?= esc($s['email'] ?? '') ?>" class="form-control">
-                        </td>
-                        <td>
-                            <input type="text" name="shareholders[<?= $i ?>][phone_number]" 
-                                   value="<?= esc($s['phone_number'] ?? '') ?>" class="form-control">
-                        </td>
-                        <td>
-                            <input type="number" name="shareholders[<?= $i ?>][shareholding]" 
-                                   value="<?= esc($s['shareholding'] ?? 0) ?>" class="form-control">
-                        </td>
-                        <td class="text-center">
-                            <input type="checkbox" name="shareholders[<?= $i ?>][is_director]" 
-                                   value="1" <?= !empty($s['is_director']) ? 'checked' : '' ?>>
-                        </td>
-                        <td>
-                            <!-- Existing documents -->
-                            <?php if (!empty($s['documents'])): ?>
-                                <div class="mb-2">
-                                    <?php foreach ($s['documents'] as $doc): ?>
-                                        <a href="<?= base_url('uploads/shareholders/' . $doc) ?>" 
-                                           target="_blank" class="badge bg-info text-dark me-1">
-                                           <i class="fas fa-file-alt"></i> <?= esc($doc) ?>
-                                        </a>
-                                    <?php endforeach; ?>
-                                </div>
-                            <?php else: ?>
-                                <p class="text-muted">No documents</p>
-                            <?php endif; ?>
+        <h5 class="mt-4">Shareholders</h5>
 
-                            <!-- Upload new -->
-                            <input type="file" name="shareholders[<?= $i ?>][documents][]" 
-                                   class="form-control" multiple>
-                        </td>
-                        <td>
-                            <a href="<?= site_url('pbc/shareholder/' . $s['id']) ?>" 
-                               class="btn btn-sm btn-info mb-1">
-                               <i class="fas fa-eye"></i> View
-                            </a>
-                            <button type="button" class="btn btn-sm btn-secondary mb-1 cancel-row">
-                                <i class="fas fa-times"></i> Cancel
-                            </button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+<?php if (!empty($shareholders)): ?>
+    <?php foreach ($shareholders as $i => $s): ?>
+        <div class="card mb-4 <?= $i === 0 ? 'border-primary shadow-sm' : '' ?>">
+            <div class="card-header <?= $i === 0 ? 'bg-primary text-white' : 'bg-light' ?>">
+                <b>Shareholder <?= $i + 1 ?></b>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+
+                    <!-- Full Name -->
+                    <div class="col-md-6">
+                        <label>Full Name</label>
+                        <input type="text" name="shareholders[<?= $i ?>][full_name]" 
+                               value="<?= esc($s['full_name'] ?? '') ?>" class="form-control">
+                    </div>
+
+                    <!-- National ID -->
+                    <div class="col-md-6">
+                        <label>ID/Passport</label>
+                        <input type="text" name="shareholders[<?= $i ?>][national_id]" 
+                               value="<?= esc($s['national_id'] ?? '') ?>" class="form-control">
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <label>Email</label>
+                        <input type="email" name="shareholders[<?= $i ?>][email]" 
+                               value="<?= esc($s['email'] ?? '') ?>" class="form-control">
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="col-md-6">
+                        <label>Phone</label>
+                        <input type="text" name="shareholders[<?= $i ?>][phone_number]" 
+                               value="<?= esc($s['phone_number'] ?? '') ?>" class="form-control">
+                    </div>
+
+                    <!-- Shareholding -->
+                    <div class="col-md-4">
+                        <label>Shareholding %</label>
+                        <input type="number" name="shareholders[<?= $i ?>][shareholding]" 
+                               value="<?= esc($s['shareholding'] ?? 0) ?>" class="form-control">
+                    </div>
+
+                    <!-- Director -->
+                    <div class="col-md-4 d-flex align-items-center mt-3">
+                        <div class="form-check">
+                            <input type="hidden" name="shareholders[<?= $i ?>][is_director]" value="0">
+                            <input type="checkbox" name="shareholders[<?= $i ?>][is_director]" value="1" 
+                                   <?= !empty($s['is_director']) ? 'checked' : '' ?> class="form-check-input">
+                            <label class="form-check-label">Director</label>
+                        </div>
+                    </div>
+
+                    <!-- Beneficial Owner -->
+                    <div class="col-md-4 d-flex align-items-center mt-3">
+                        <div class="form-check">
+                            <input type="hidden" name="shareholders[<?= $i ?>][is_beneficial_owner]" value="0">
+                            <input type="checkbox" name="shareholders[<?= $i ?>][is_beneficial_owner]" value="1" 
+                                   <?= !empty($s['is_beneficial_owner']) ? 'checked' : '' ?> class="form-check-input">
+                            <label class="form-check-label">Beneficial Owner</label>
+                        </div>
+                    </div>
+
+                    <!-- Documents -->
+                    <div class="col-12">
+                        <label>Documents</label>
+                        
+                        <?php 
+                            // Determine all possible document fields
+                            $docFields = ['id_document', 'passport_photo', 'proof_of_residence', 'share_certificate', 'proof_of_address', 'company_registration_doc'];
+                        ?>
+
+                        <?php foreach ($docFields as $docField): ?>
+                            <?php if (!empty($s[$docField])): ?>
+                                <div class="mb-2">
+                                    <span class="me-2"><?= ucwords(str_replace('_', ' ', $docField)) ?>:</span>
+                                    <a href="<?= base_url('uploads/shareholders/' . $s[$docField]) ?>" target="_blank" 
+                                       class="badge bg-info text-dark me-1 mb-1">
+                                        <i class="fas fa-file-alt"></i> <?= esc($s[$docField]) ?>
+                                    </a>
+                                    <div class="mt-1">
+                                        <label class="form-label">Replace</label>
+                                        <input type="file" name="shareholders[<?= $i ?>][<?= $docField ?>]" class="form-control">
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+
+                        <?php if (empty(array_filter(array_map(fn($f) => $s[$f] ?? null, $docFields)))): ?>
+                            <p class="text-muted">No documents uploaded</p>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="col-12 mt-3">
+                        <a href="<?= site_url('pbc/shareholder/' . $s['id']) ?>" class="btn btn-sm btn-info mb-1">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        <button type="button" class="btn btn-sm btn-secondary mb-1 cancel-row">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
 <?php else: ?>
     <p>No shareholders added yet.</p>
 <?php endif; ?>
+
 
 
         <div class="mt-3">

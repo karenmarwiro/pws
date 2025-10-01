@@ -97,38 +97,42 @@
             </ul>
 
 
-            <!-- Shareholders -->
-           <h5 class="mt-4">Shareholders</h5>
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>#</th>
-                            <th>Full Name</th>
-                            <th>ID/Passport</th>
-                            <th>Nationality</th>
-                            <th>Email</th>
-                            <th>Phone</th>
-                            <th>Shareholding</th>
-                            <th>Director</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($submitted['shareholders'] as $i => $s): ?>
-                            <tr>
-                                <td><?= $i + 1 ?></td>
-                                <td><?= esc($s['full_name']) ?></td>
-                                <td><?= esc($s['national_id']) ?></td>
-                                <td><?= esc($s['nationality']) ?></td>
-                                <td><?= esc($s['email']) ?></td>
-                                <td><?= esc($s['phone_number']) ?></td>
-                                <td><?= esc($s['shareholding']) ?>%</td>
-                                <td><?= $s['is_director'] ? 'Yes' : 'No' ?></td>
-                            </tr>
-                        <?php endforeach ?>
-                    </tbody>
-                </table>
-            </div>
+           <!-- Shareholders -->
+<div class="mb-4">
+    <h5 class="fw-bold text-secondary"><i class="fas fa-users me-2"></i> Shareholders</h5>
+    <div class="table-responsive">
+        <table class="table table-hover table-striped align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Full Name</th>
+                    <th>ID/Passport</th>
+                    <th>Shareholding</th>
+                    <th>Director</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($submitted['shareholders'] as $i => $s): ?>
+                    <tr>
+                        <td><?= $i + 1 ?></td>
+                        <td><?= esc($s['full_name']) ?></td>
+                        <td><?= esc($s['national_id']) ?></td>
+                        <td><span class="badge bg-info"><?= esc($s['shareholding']) ?>%</span></td>
+                        <td><?= $s['is_director'] ? '<span class="badge bg-success">Yes</span>' : '<span class="badge bg-danger">No</span>' ?></td>
+                        <td>
+                            <a href="<?= site_url('pbc/shareholder/' . $s['id']) ?>" 
+                               class="btn btn-sm btn-info">
+                               <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                <?php endforeach ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
 
         </div>
