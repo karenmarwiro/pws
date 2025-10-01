@@ -112,6 +112,8 @@
         }
     </style>
 </head>
+
+
 <body>
 <div class="personal-details-container">
     <div class="container">
@@ -122,7 +124,6 @@
                         <h4><i class="fas fa-users me-2"></i> Directors & Shareholders</h4>
                         <p class="mb-0">Step 3 of 4 - Add company directors and shareholders</p>
                     </div>
-
                     <?php if(session()->has('error')): ?>
                         <div class="alert alert-danger">
                             <?= session('error') ?>
@@ -134,11 +135,13 @@
                             <?= session('message') ?>
                         </div>
                     <?php endif; ?>
-                    
+
                     <div class="card-body">
                         <form id="shareholdersForm" 
                               action="<?= site_url('frontend/plc/process-shareholders') ?>" 
-                              method="post" novalidate>
+                              method="post" 
+                              enctype="multipart/form-data" 
+                              novalidate>
                             <?= csrf_field() ?>
 
                             <div id="shareholdersContainer">
@@ -179,7 +182,6 @@
     </div>
 </div>
 
-<!-- Template for new shareholder -->
 <template id="shareholderTemplate">
     <div class="shareholder-card" data-shareholder-index="0">
         <div class="shareholder-number">1</div>
@@ -187,6 +189,8 @@
             <i class="fas fa-times"></i>
         </button>
         <div class="row g-3">
+
+            <!-- Full Name -->
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">Full Name <span class="text-danger">*</span></label>
@@ -199,6 +203,7 @@
                 </div>
             </div>
 
+            <!-- National ID -->
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">National ID/Passport No <span class="text-danger">*</span></label>
@@ -224,6 +229,7 @@
                 </div>
             </div>
 
+            <!-- Shareholding -->
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">Shareholding (%) <span class="text-danger">*</span></label>
@@ -236,6 +242,7 @@
                 </div>
             </div>
 
+            <!-- Email -->
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">Email Address <span class="text-danger">*</span></label>
@@ -248,6 +255,7 @@
                 </div>
             </div>
 
+            <!-- Phone -->
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
@@ -260,8 +268,98 @@
                 </div>
             </div>
 
+            <!-- Gender -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Gender <span class="text-danger">*</span></label>
+                    <select class="form-control" name="shareholders[0][gender]" required>
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" name="shareholders[0][date_of_birth]" required>
+                </div>
+            </div>
+
+            <!-- Residential Address -->
+            <div class="col-md-12">
+                <div class="form-group">
+                    <label class="form-label">Residential Address <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="shareholders[0][residential_address]" required
+                              placeholder="Enter residential address"></textarea>
+                </div>
+            </div>
+
+            <!-- Marital Status -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Marital Status</label>
+                    <select class="form-control" name="shareholders[0][marital_status]">
+                        <option value="">Select status</option>
+                        <option value="Single">Single</option>
+                        <option value="Married">Married</option>
+                        <option value="Divorced">Divorced</option>
+                        <option value="Widowed">Widowed</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- City -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    <input type="text" class="form-control" name="shareholders[0][city]" placeholder="Enter city">
+                </div>
+            </div>
+
+            <!-- Beneficial Owner -->
+            <div class="col-md-6">
+                <div class="form-check mt-4">
+                    <input class="form-check-input" type="checkbox" name="shareholders[0][is_beneficial_owner]" value="1">
+                    <label class="form-check-label">Is Beneficial Owner</label>
+                </div>
+            </div>
+
+            <!-- Documents -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label>ID Document</label>
+                    <input type="file" class="form-control" name="shareholders[0][id_document]">
+                </div>
+                <div class="form-group">
+                    <label>Proof of Residence</label>
+                    <input type="file" class="form-control" name="shareholders[0][proof_of_residence]">
+                </div>
+                <div class="form-group">
+                    <label>Passport Photo</label>
+                    <input type="file" class="form-control" name="shareholders[0][passport_photo]">
+                </div>
+                <div class="form-group">
+                    <label>Proof of Address</label>
+                    <input type="file" class="form-control" name="shareholders[0][proof_of_address]">
+                </div>
+                <div class="form-group">
+                    <label>Share Certificate</label>
+                    <input type="file" class="form-control" name="shareholders[0][share_certificate]">
+                </div>
+                <div class="form-group">
+                    <label>Company Registration Document</label>
+                    <input type="file" class="form-control" name="shareholders[0][company_registration_doc]">
+                </div>
+            </div>
+
+            <!-- Director checkbox -->
             <div class="col-12">
-                <div class="form-check">
+                <div class="form-check mt-3">
                     <input class="form-check-input" type="checkbox" id="isDirector0" 
                            name="shareholders[0][is_director]" value="1" checked>
                     <label class="form-check-label" for="isDirector0">
@@ -269,9 +367,11 @@
                     </label>
                 </div>
             </div>
+
         </div>
     </div>
 </template>
+
 
 <!-- Bootstrap 5 JS Bundle -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>

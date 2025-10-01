@@ -170,7 +170,8 @@ class PlcController extends Controller
     {
         return view('App\Modules\Frontend\Views\plc\directors_shareholders');
     }
-    public function processShareholders()
+    
+   public function processShareholders()
 {
     $applicationId = session()->get('application_id');
     $personalId    = session()->get('personal_id');
@@ -200,24 +201,57 @@ class PlcController extends Controller
         $ids[] = $nid;
     }
 
-    // Insert shareholders
-    foreach ($shareholders as $shareholder) {
+    // Handle inserts with extra fields
+    foreach ($shareholders as $index => $shareholder) {
+
+        // Handle file uploads (if any)
+        $uploadFields = [
+            'id_document', 'proof_of_residence', 'passport_photo',
+            'proof_of_address', 'share_certificate', 'company_registration_doc'
+        ];
+        $uploads = [];
+
+        foreach ($uploadFields as $field) {
+            $file = $this->request->getFile("shareholders.$index.$field");
+            if ($file && $file->isValid() && !$file->hasMoved()) {
+                $newName = $file->getRandomName();
+                $file->move(FCPATH . 'uploads/shareholders', $newName);
+                $uploads[$field] = $newName;
+            } else {
+                $uploads[$field] = null;
+            }
+        }
+
+        // Insert into DB
         $this->shareholderModel->insert([
-            'application_id'      => $applicationId,
-            'personal_details_id' => $personalId,
-            'full_name'           => $shareholder['full_name'] ?? '',
-            'national_id'         => $shareholder['national_id'] ?? '',
-            'nationality'         => $shareholder['nationality'] ?? '',
-            'shareholding'        => $shareholder['shareholding'] ?? 0,
-            'email'               => $shareholder['email'] ?? '',
-            'phone_number'        => $shareholder['phone_number'] ?? '',
-            'is_director'         => !empty($shareholder['is_director']) ? 1 : 0,
+            'application_id'         => $applicationId,
+            'personal_details_id'    => $personalId,
+            'full_name'              => $shareholder['full_name'] ?? '',
+            'national_id'            => $shareholder['national_id'] ?? '',
+            'nationality'            => $shareholder['nationality'] ?? '',
+            'shareholding'           => $shareholder['shareholding'] ?? 0,
+            'email'                  => $shareholder['email'] ?? '',
+            'phone_number'           => $shareholder['phone_number'] ?? '',
+            'is_director'            => !empty($shareholder['is_director']) ? 1 : 0,
+            'gender'                 => $shareholder['gender'] ?? '',
+            'date_of_birth'          => $shareholder['date_of_birth'] ?? null,
+            'residential_address'    => $shareholder['residential_address'] ?? '',
+            'marital_status'         => $shareholder['marital_status'] ?? '',
+            'city'                   => $shareholder['city'] ?? '',
+            'is_beneficial_owner'    => !empty($shareholder['is_beneficial_owner']) ? 1 : 0,
+            'id_document'            => $uploads['id_document'],
+            'proof_of_residence'     => $uploads['proof_of_residence'],
+            'passport_photo'         => $uploads['passport_photo'],
+            'proof_of_address'       => $uploads['proof_of_address'],
+            'share_certificate'      => $uploads['share_certificate'],
+            'company_registration_doc'=> $uploads['company_registration_doc'],
         ]);
     }
 
     return redirect()->to(site_url('frontend/plc/review-submit'))
                      ->with('message', 'Shareholders saved successfully!');
 }
+
 
 
     public function reviewSubmit()

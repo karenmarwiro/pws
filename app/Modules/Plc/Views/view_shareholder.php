@@ -6,7 +6,7 @@
         <i class="fas fa-user"></i> Shareholder: <?= esc($shareholder['full_name']) ?>
     </h1>
 
-    <!-- Shareholder Info -->
+<!-- Shareholder Info -->
 <div class="card mb-4 shadow-sm">
     <div class="card-header">Details</div>
     <div class="card-body">
@@ -92,7 +92,7 @@
                                 <td><?= esc($company['email']) ?></td>
                                 <td><?= esc($company['phone_number']) ?></td>
                                 <td>
-                                    <a href="<?= site_url('pbc/company/'.$company['id']) ?>" class="btn btn-sm btn-primary">
+                                    <a href="<?= site_url('plc/company/'.$company['id']) ?>" class="btn btn-sm btn-primary">
                                         <i class="fas fa-eye"></i> View
                                     </a>
                                 </td>
@@ -106,7 +106,7 @@
         </div>
     </div>
 
-    <a href="<?= site_url('pbc') ?>" class="btn btn-secondary mt-3">Back</a>
+    <a href="<?= site_url('plc') ?>" class="btn btn-secondary mt-3">Back</a>
 </div>
 
 <?php include APPPATH . 'Core/Views/Partials/footer.php'; ?>

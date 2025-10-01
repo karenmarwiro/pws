@@ -130,9 +130,14 @@
                 </table>
             </div>
 
+
         </div>
+
     </div>
+     <a href="<?= site_url('pbc') ?>" class="btn btn-secondary mt-3">Back</a>
 </div>
+
+
 
 <script>
 document.getElementById("statusForm").addEventListener("submit", function(e) {
@@ -161,5 +166,7 @@ document.getElementById("statusForm").addEventListener("submit", function(e) {
     .catch(err => console.error(err));
 });
 </script>
+
+
 
 <?php include APPPATH . 'Core/Views/Partials/footer.php'; ?>

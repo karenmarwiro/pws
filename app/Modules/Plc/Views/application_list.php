@@ -28,20 +28,20 @@
             <?php endif; ?>
         </td>
         <td>
-            <a href="<?= site_url('plc/view/' . $app['id']) ?>" 
-               class="btn btn-sm btn-primary">
-               <i class="fas fa-eye"></i> View
+            <a href="<?= site_url('plc/view/' . $app['id']) ?>" class="btn btn-sm btn-primary">
+                <i class="fas fa-eye"></i> View
             </a>
 
-           <form action="<?= site_url('plc/delete/' . $app['id']) ?>" 
-          method="post" 
-          style="display:inline-block;" 
-          onsubmit="return confirm('Are you sure you want to delete this application?');">
-        <?= csrf_field() ?>
-        <button type="submit" class="btn btn-sm btn-danger">
-            <i class="fas fa-trash"></i> Delete
-        </button>
-    </form>
+            <a href="<?= site_url('plc/edit/' . $app['id']) ?>" class="btn btn-sm btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+
+            <form action="<?= site_url('plc/delete/' . $app['id']) ?>" method="post" style="display:inline-block;" onsubmit="return confirm('Are you sure you want to delete this application?');">
+                <?= csrf_field() ?>
+                <button type="submit" class="btn btn-sm btn-danger">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
         </td>
     </tr>
 <?php endforeach; ?>

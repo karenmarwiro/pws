@@ -133,6 +133,111 @@ class Plc extends AdminController
     ]);
 }
 
+public function edit($id = null)
+{
+    $application = $this->plcApplicationModel->find($id);
+
+    if (empty($application)) {
+        return redirect()->back()->with('error', 'Application not found.');
+    }
+
+    // Decode submitted_data safely
+    $submitted = !empty($application['submitted_data']) ? json_decode($application['submitted_data'], true) : [];
+
+    // Make sure 'shareholders' key exists
+    $shareholders = $submitted['shareholders'] ?? [];
+
+    return view('App\Modules\Plc\Views\edit_application', [
+        'title'        => 'Edit Application',
+        'application'  => $application,
+        'submitted'    => $submitted,
+        'shareholders' => $shareholders
+    ]);
+}
+
+
+
+public function update($id = null)
+{
+    if (!$id) {
+        return redirect()->to(site_url('plc'))->with('error', 'Application ID not provided.');
+    }
+
+    $application = $this->applicationsModel->find($id);
+    if (!$application) {
+        return redirect()->to(site_url('plc'))->with('error', 'Application not found.');
+    }
+
+    $data = $this->request->getPost();
+
+    if (!$data) {
+        return redirect()->back()->with('error', 'No data submitted.');
+    }
+
+    // Decode existing submitted_data or initialize empty array
+    $existing = json_decode($application['submitted_data'] ?? '{}', true);
+
+    // Merge recursively while keeping nested arrays intact
+    $updatedData = $this->array_merge_recursive_distinct($existing, $data);
+
+    // Encode back to JSON and save
+    $application['submitted_data'] = json_encode($updatedData);
+
+    if ($this->applicationsModel->update($id, $application)) {
+        return redirect()->to(site_url('plc/view/' . $id))
+                         ->with('message', 'Application updated successfully!');
+    } else {
+        return redirect()->back()->with('error', 'Failed to update application.');
+    }
+}
+
+// --- Add this helper function inside the controller ---
+private function array_merge_recursive_distinct(array $array1, array $array2)
+{
+    $merged = $array1;
+
+    foreach ($array2 as $key => $value) {
+        if (is_array($value) && isset($merged[$key]) && is_array($merged[$key])) {
+            $merged[$key] = $this->array_merge_recursive_distinct($merged[$key], $value);
+        } else {
+            $merged[$key] = $value;
+        }
+    }
+
+    return $merged;
+}
+
+public function shareholder($id = null)
+{
+    if (!$id) {
+        return redirect()->back()->with('error', 'Shareholder ID not provided.');
+    }
+
+    // 1. Get shareholder details
+    $shareholder = $this->shareholderModel->find($id);
+
+    if (!$shareholder) {
+        return redirect()->back()->with('error', 'Shareholder not found.');
+    }
+
+    // 2. Get all companies linked to this shareholder via pivot table
+    $db = \Config\Database::connect();
+
+    $companies = $db->table('company_shareholders cs')
+        ->select('cd.id, cd.proposed_name_one, cd.business_type, cd.registration_number, cd.email, cd.phone_number')
+        ->join('company_details cd', 'cd.id = cs.company_id')
+        ->where('cs.shareholder_id', $id)
+        ->get()
+        ->getResultArray();
+
+    return view('App\Modules\Plc\Views\view_shareholder', [
+        'title'       => 'View Shareholder',
+        'shareholder' => $shareholder,
+        'companies'   => $companies,
+    ]);
+}
+
+
 
     public function delete($id = null)
     {

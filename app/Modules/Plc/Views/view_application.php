@@ -132,6 +132,7 @@
 
         </div>
     </div>
+     <a href="<?= site_url('plc') ?>" class="btn btn-secondary mt-3">Back</a>
 </div>
 
 <script>

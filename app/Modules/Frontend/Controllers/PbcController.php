@@ -186,14 +186,10 @@ class PbcController extends Controller
         return redirect()->back()->with('error', 'No shareholders submitted.');
     }
 
+    // Check for duplicate National IDs
     $ids = [];
-    $totalShares = 0;
-
-    foreach ($shareholders as $i => $shareholder) {
+    foreach ($shareholders as $shareholder) {
         $nid = trim($shareholder['national_id'] ?? '');
-        $share = floatval($shareholder['shareholding'] ?? 0);
-
-        // Check National ID uniqueness
         if (empty($nid)) {
             return redirect()->back()->withInput()
                              ->with('error', 'National ID is required for all shareholders.');
@@ -203,109 +199,58 @@ class PbcController extends Controller
                              ->with('error', 'Each shareholder must have a unique National ID. Duplicate found: ' . $nid);
         }
         $ids[] = $nid;
-
-        // Sum shares
-        $totalShares += $share;
     }
 
-    if ($totalShares > 100) {
-        return redirect()->back()->withInput()
-                         ->with('error', 'Total shareholding cannot exceed 100%. Currently: ' . $totalShares . '%');
-    }
+    // Handle inserts with extra fields
+    foreach ($shareholders as $index => $shareholder) {
 
-    // Insert shareholders
-    foreach ($shareholders as $i => $shareholder) {
-        $data = [
-            'application_id'      => $applicationId,
-            'personal_details_id' => $personalId,
-            'full_name'           => $shareholder['full_name'] ?? '',
-            'national_id'         => $shareholder['national_id'] ?? '',
-            'nationality'         => $shareholder['nationality'] ?? '',
-            'shareholding'        => $shareholder['shareholding'] ?? 0,
-            'email'               => $shareholder['email'] ?? '',
-            'phone_number'        => $shareholder['phone_number'] ?? '',
-            'is_director'         => !empty($shareholder['is_director']) ? 1 : 0,
-            'gender'              => $shareholder['gender'] ?? '',
-            'date_of_birth'       => $shareholder['date_of_birth'] ?? null,
-            'residential_address' => $shareholder['residential_address'] ?? '',
-            'marital_status'      => $shareholder['marital_status'] ?? '',
-            'city'                => $shareholder['city'] ?? '',
-            'is_beneficial_owner' => !empty($shareholder['is_beneficial_owner']) ? 1 : 0,
+        // Handle file uploads (if any)
+        $uploadFields = [
+            'id_document', 'proof_of_residence', 'passport_photo',
+            'proof_of_address', 'share_certificate', 'company_registration_doc'
         ];
+        $uploads = [];
 
-        // Ensure upload directory exists and is writable
-        $uploadPath = WRITEPATH . 'uploads/shareholders';
-        if (!is_dir($uploadPath)) {
-            mkdir($uploadPath, 0777, true);
-        }
-
-        if (!is_writable($uploadPath)) {
-            log_message('error', 'Upload directory is not writable: ' . $uploadPath);
-            return redirect()->back()->with('error', 'Server error: Upload directory is not writable');
-        }
-
-        // Handle file uploads
-        $fileFields = [
-            'id_document',
-            'proof_of_residence',
-            'passport_photo',
-            'proof_of_address',
-            'share_certificate',
-            'company_registration_doc'
-        ];
-
-        foreach ($fileFields as $field) {
-            $file = $this->request->getFile("shareholders[$i][$field]");
-            log_message('debug', "Processing file field: {$field}");
-            log_message('debug', 'File info: ' . print_r($file, true));
-            
-            if ($file === null) {
-                log_message('debug', 'No file was uploaded for field: ' . $field);
-                continue;
-            }
-            
-            if (!$file->isValid()) {
-                $error = $file->getErrorString() ?? 'Unknown error';
-                log_message('error', "File validation failed for {$field}: {$error}");
-                log_message('debug', 'File error code: ' . $file->getError());
-                continue;
-            }
-            
-            if ($file->hasMoved()) {
-                log_message('warning', 'File has already been moved: ' . $file->getName());
-                continue;
-            }
-            
-            $newName = $file->getRandomName();
-            log_message('debug', 'Attempting to move file to: ' . $uploadPath . '/' . $newName);
-            
-            try {
-                $file->move($uploadPath, $newName);
-                
-                if ($file->hasMoved()) {
-                    $data[$field] = $newName;
-                    log_message('info', 'File uploaded successfully: ' . $newName . ' (Original: ' . $file->getName() . ')');
-                    log_message('debug', 'File size: ' . $file->getSize() . ' bytes');
-                    log_message('debug', 'File MIME type: ' . $file->getMimeType());
-                } else {
-                    $error = $file->getErrorString() ?? 'Unknown error';
-                    log_message('error', 'Failed to move uploaded file: ' . $error);
-                    log_message('debug', 'Upload path: ' . $uploadPath);
-                    log_message('debug', 'Is writable: ' . (is_writable($uploadPath) ? 'Yes' : 'No'));
-                }
-            } catch (\Exception $e) {
-                log_message('error', 'File upload exception: ' . $e->getMessage());
-                log_message('debug', 'Exception trace: ' . $e->getTraceAsString());
+        foreach ($uploadFields as $field) {
+            $file = $this->request->getFile("shareholders.$index.$field");
+            if ($file && $file->isValid() && !$file->hasMoved()) {
+                $newName = $file->getRandomName();
+                $file->move(FCPATH . 'uploads/shareholders', $newName);
+                $uploads[$field] = $newName;
+            } else {
+                $uploads[$field] = null;
             }
         }
 
-        $this->shareholderModel->insert($data);
+        // Insert into DB
+        $this->shareholderModel->insert([
+            'application_id'         => $applicationId,
+            'personal_details_id'    => $personalId,
+            'full_name'              => $shareholder['full_name'] ?? '',
+            'national_id'            => $shareholder['national_id'] ?? '',
+            'nationality'            => $shareholder['nationality'] ?? '',
+            'shareholding'           => $shareholder['shareholding'] ?? 0,
+            'email'                  => $shareholder['email'] ?? '',
+            'phone_number'           => $shareholder['phone_number'] ?? '',
+            'is_director'            => !empty($shareholder['is_director']) ? 1 : 0,
+            'gender'                 => $shareholder['gender'] ?? '',
+            'date_of_birth'          => $shareholder['date_of_birth'] ?? null,
+            'residential_address'    => $shareholder['residential_address'] ?? '',
+            'marital_status'         => $shareholder['marital_status'] ?? '',
+            'city'                   => $shareholder['city'] ?? '',
+            'is_beneficial_owner'    => !empty($shareholder['is_beneficial_owner']) ? 1 : 0,
+            'id_document'            => $uploads['id_document'],
+            'proof_of_residence'     => $uploads['proof_of_residence'],
+            'passport_photo'         => $uploads['passport_photo'],
+            'proof_of_address'       => $uploads['proof_of_address'],
+            'share_certificate'      => $uploads['share_certificate'],
+            'company_registration_doc'=> $uploads['company_registration_doc'],
+        ]);
     }
 
     return redirect()->to(site_url('frontend/pbc/review-submit'))
                      ->with('message', 'Shareholders saved successfully!');
 }
-
 
 
 

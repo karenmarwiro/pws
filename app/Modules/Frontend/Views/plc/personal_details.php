@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Personal Details - Company Registration</title>
+    <title>Applicant Details - Company Registration</title>
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -39,7 +39,7 @@
                 <div class="col-lg-8">
                     <div class="card">
                         <div class="card-header text-center">
-                            <h4><i class="fas fa-user-circle me-2"></i> Personal Details</h4>
+                            <h4><i class="fas fa-user-circle me-2"></i> Applicant Details</h4>
                             <p class="mb-0">Step 1 of 4 - Let's get to know you</p>
                         </div>
                         <div class="card-body">
@@ -47,7 +47,7 @@
     <?= csrf_field() ?>
 
     <fieldset class="mb-4">
-        <legend class="h5">Your Personal Details</legend>
+        <legend class="h5">Your  Details</legend>
 
         <div class="row g-3">
             <!-- First Name -->
