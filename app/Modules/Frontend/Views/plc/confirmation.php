@@ -1,9 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Submitted - PLC Registration</title>
+<?= $this->extend('App\Modules\Frontend\Views\Layouts\default') ?>
+
+<?= $this->section('title') ?>Confirmation | Alpha Empire<?= $this->endSection() ?>
+
+<?= $this->section('styles') ?>
+
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
@@ -107,8 +107,9 @@
             font-weight: 500;
         }
     </style>
-</head>
-<body>
+    <?= $this->endSection() ?>
+
+    <?= $this->section('content') ?>
     <div class="container">
         <div class="confirmation-container">
             <div class="success-icon">
@@ -123,26 +124,24 @@
     <i class="fas fa-file-alt me-2"></i> Reference: <?= esc($referenceNumber ?? 'N/A') ?>
 </div>
 
-                        
-            <div class="next-steps">
-                <h3>What Happens Next?</h3>
-                <ul>
-                    <li>You'll receive a confirmation email with your application details</li>
-                    <li>Our team will review your application within 1-2 business days</li>
-                    <li>We may contact you if we need any additional information</li>
-                    <li>Once approved, you'll receive your company registration documents via email</li>
-                </ul>
-            </div>
             
             <div class="contact-info">
                 <p class="mb-2">Need help or have questions?</p>
                 <p class="mb-1">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    ST 248 SOUTHERTON, HARARE
+                </p>
+                <p class="mb-1">
+                    <i class="fas fa-globe me-2"></i>
+                    <a href="https://www.alphaempire.co.zw" target="_blank" rel="noopener">www.alphaempire.co.zw</a>
+                </p>
+                <p class="mb-1">
                     <i class="fas fa-envelope me-2"></i> 
-                    <a href="mailto:support@companyreg.co.za">support@companyreg.co.zw</a>
+                    <a href="mailto:admin@alphaempire.co.zw">admin@alphaempire.co.zw</a>
                 </p>
                 <p class="mb-0">
                     <i class="fab fa-whatsapp me-2"></i> 
-                    <a href="https://wa.me/27612345678" class="whatsapp-link">+27 61 234 5678</a>
+                    <a href="https://wa.me/263776136070" class="whatsapp-link">+263 776 136 070</a>
                 </p>
             </div>
             
@@ -151,8 +150,9 @@
             </a>
         </div>
     </div>
+    <?= $this->endSection() ?>
     
+    <?= $this->section('scripts') ?>
     <!-- Bootstrap 5 JS Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    <?= $this->endSection() ?>

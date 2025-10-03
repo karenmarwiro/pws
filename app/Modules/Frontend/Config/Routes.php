@@ -16,6 +16,8 @@ $routes->group('', ['namespace' => 'App\\Modules\\Frontend\\Controllers', 'filte
     // Dashboard and profile
     $routes->get('frontend/dashboard', 'Frontend::dashboard', ['as' => 'frontend.dashboard']);
     $routes->get('frontend/apply', 'Frontend::apply', ['as' => 'apply']);
+    $routes->get('frontend/profile', 'Frontend::profile');
+    $routes->post('frontend/profile', 'Frontend::updateProfile');
 });
 
 // PBC module routes
@@ -43,6 +45,11 @@ $routes->group('frontend', ['namespace' => 'App\Modules\Frontend\Controllers'], 
         $routes->get('review-submit', 'PbcController::reviewSubmit');
         $routes->post('submit-final', 'PbcController::submitFinalApplication');
         $routes->get('confirmation', 'PbcController::confirmation');
+
+        //  - update modals
+        $routes->post('update-personal', 'PbcController::updatePersonal');
+        $routes->post('update-company', 'PbcController::updateCompany');
+        $routes->post('update-shareholders', 'PbcController::updateShareholders');
     });
 });
 
@@ -71,5 +78,12 @@ $routes->group('frontend', ['namespace' => 'App\Modules\Frontend\Controllers'], 
         $routes->get('review-submit', 'PlcController::reviewSubmit');
         $routes->post('submit-final', 'PlcController::submitFinalApplication');
         $routes->get('confirmation', 'PlcController::confirmation');
+
+         //  - update modals
+        $routes->post('update-personal', 'PlcController::updatePersonal');
+        $routes->post('update-company', 'PlcController::updateCompany');
+        $routes->post('update-shareholders', 'PlcController::updateShareholders');
+
+
     });
        });

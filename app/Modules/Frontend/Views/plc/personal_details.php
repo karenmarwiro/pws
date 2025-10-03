@@ -74,6 +74,18 @@
                 </div>
             </div>
 
+            <!-- National ID -->
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label for="national_id" class="form-label">National ID <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="national_id" name="national_id"
+                           value="<?= old('national_id') ?>" required>
+                    <?php if (session()->getFlashdata('errors')['national_id'] ?? false): ?>
+                        <div class="text-danger small"><?= session()->getFlashdata('errors')['national_id'] ?></div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
             <!-- Phone -->
             <div class="col-md-6">
                 <div class="form-group">

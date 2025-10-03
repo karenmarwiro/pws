@@ -48,7 +48,7 @@ class PlcController extends Controller
     // Insert new application
     $this->applicationsModel->insert([
         'user_id'             => $userId,
-        'application_type_id' => 1,
+        'application_type_id' => 2,
         'status'              => 'pending',
         'reference_number'    => $referenceNumber,
         'created_at'          => date('Y-m-d H:i:s'),
@@ -72,6 +72,7 @@ class PlcController extends Controller
         $rules = [
             'first_name' => 'required|min_length[2]',
             'surname'    => 'required|min_length[2]',
+            'national_id' => 'required|min_length[2]',
             'phone'      => 'required',
             'email'      => 'required|valid_email'
         ];
@@ -93,6 +94,7 @@ class PlcController extends Controller
             'application_id'   => $applicationId,
             'first_name'       => $this->request->getPost('first_name'),
             'last_name'        => $this->request->getPost('surname'),
+            'national_id'      => $this->request->getPost('national_id'),
             'phone_number'     => $this->request->getPost('phone'),
             'email'            => $this->request->getPost('email'),
             'physical_address' => $this->request->getPost('referral') ?? null
@@ -354,6 +356,223 @@ public function submitFinalApplication()
         'referenceNumber' => $referenceNumber
     ]);
 }
+
+
+public function updatePersonal()
+{
+    if (!$this->request->isAJAX()) {
+        return redirect()->back();
+    }
+
+    $post = $this->request->getPost();
+    $applicationId = session()->get('application_id');
+    $personalId    = session()->get('personal_id');
+
+    if (!$applicationId || !$personalId) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'No application found. Please start again.'
+        ]);
+    }
+
+    // ✅ Update personal details in DB
+    $updateData = [
+        'first_name'   => $post['first_name'] ?? '',
+        'last_name'    => $post['last_name'] ?? '',
+        'national_id'  => $post['national_id'] ?? '',
+        'email'        => $post['email'] ?? '',
+        'phone_number' => $post['phone_number'] ?? '',
+    ];
+
+    $this->personalModel->update($personalId, $updateData);
+
+    // ✅ Build updated HTML for review page
+    $updatedHtml = '';
+    $fields = [
+        'First Name'  => $updateData['first_name'],
+        'Last Name'   => $updateData['last_name'],
+        'National ID' => $updateData['national_id'],
+        'Email'       => $updateData['email'],
+        'Phone'       => $updateData['phone_number'],
+    ];
+
+    foreach ($fields as $label => $value) {
+        $updatedHtml .= '<div class="detail-item"><span class="detail-label">'
+                      . $label . '</span><span class="detail-value">'
+                      . esc($value) . '</span></div>';
+    }
+
+    return $this->response->setJSON([
+        'success' => true,
+        'updatedHtml' => $updatedHtml
+    ]);
+}
+
+public function updateCompany()
+{
+    if (!$this->request->isAJAX()) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Invalid request.'
+        ]);
+    }
+
+    $post = $this->request->getPost();
+    $applicationId = session()->get('application_id');
+
+    if (!$post || !$applicationId) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'No data submitted or application missing.'
+        ]);
+    }
+
+    $company = $this->companyModel->where('application_id', $applicationId)->first();
+
+    if ($company) {
+        $this->companyModel->update($company['id'], [
+            'proposed_name_one'   => $post['proposed_name_one'] ?? $company['proposed_name_one'],
+            'proposed_name_two'   => $post['proposed_name_two'] ?? $company['proposed_name_two'],
+            'proposed_name_three' => $post['proposed_name_three'] ?? $company['proposed_name_three'],
+            'proposed_name_four'  => $post['proposed_name_four'] ?? $company['proposed_name_four'],
+            'postal_code'         => $post['postal_code'] ?? $company['postal_code'],
+            'suburb_city'         => $post['suburb_city'] ?? $company['suburb_city'],
+            'country'             => $post['country'] ?? $company['country'],
+            'business_type'       => $post['business_type'] ?? $company['business_type'],
+            'financial_year_end'  => $post['financial_year_end'] ?? $company['financial_year_end']
+        ]);
+    } else {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Company record not found.'
+        ]);
+    }
+
+    // Build updated HTML
+    $updatedHtml = '';
+    $fields = [
+        'Proposed Name 1' => 'proposed_name_one',
+        'Proposed Name 2' => 'proposed_name_two',
+        'Proposed Name 3' => 'proposed_name_three',
+        'Proposed Name 4' => 'proposed_name_four',
+        'Postal Code'     => 'postal_code',
+        'City'            => 'suburb_city',
+        'Country'         => 'country',
+        'Business Type'   => 'business_type',
+        'Year End'        => 'financial_year_end'
+    ];
+
+    foreach ($fields as $label => $key) {
+        $updatedHtml .= '<div class="detail-item"><span class="detail-label">'. $label .'</span><span class="detail-value">'. esc($post[$key] ?? $company[$key]) .'</span></div>';
+    }
+
+    return $this->response->setJSON([
+        'success' => true,
+        'updatedHtml' => $updatedHtml
+    ]);
+}
+
+
+
+public function updateShareholders()
+{
+    if (!$this->request->isAJAX()) return redirect()->back();
+
+    $applicationId = session()->get('application_id');
+    $personalId    = session()->get('personal_id');
+
+    if (!$applicationId || !$personalId) {
+        return $this->response->setJSON([
+            'success' => false,
+            'message' => 'Missing application or personal details. Please complete personal details first.'
+        ]);
+    }
+
+    $post  = $this->request->getPost();
+    $files = $this->request->getFiles();
+    $shareholdersUpdated = [];
+
+    $uploadPath = WRITEPATH . 'uploads/shareholders/';
+    if (!is_dir($uploadPath)) mkdir($uploadPath, 0777, true);
+
+    foreach ($post['full_name'] as $i => $fullName) {
+        $data = [
+            'application_id'      => $applicationId,
+            'personal_details_id' => $personalId,
+            'full_name'           => $fullName,
+            'national_id'         => $post['national_id'][$i] ?? '',
+            'nationality'         => $post['nationality'][$i] ?? '',
+            'gender'              => $post['gender'][$i] ?? '',
+            'date_of_birth'       => $post['date_of_birth'][$i] ?? '',
+            'residential_address' => $post['residential_address'][$i] ?? '',
+            'marital_status'      => $post['marital_status'][$i] ?? '',
+            'city'                => $post['city'][$i] ?? '',
+            'email'               => $post['email'][$i] ?? '',
+            'phone_number'        => $post['phone_number'][$i] ?? '',
+            'shareholding'        => $post['shareholding'][$i] ?? 0,
+            'is_director'         => $post['is_director'][$i] ?? 0,
+            'is_beneficial_owner' => $post['is_beneficial_owner'][$i] ?? 0,
+        ];
+
+        // Files
+        foreach (['id_document','proof_of_residence','passport_photo','share_certificate','company_registration_doc'] as $field) {
+            $file = $files[$field][$i] ?? null;
+            if ($file && $file->isValid() && !$file->hasMoved()) {
+                $data[$field] = $file->getRandomName();
+                $file->move($uploadPath, $data[$field]);
+            }
+        }
+
+        // Insert or update
+        $existing = $this->shareholderModel
+            ->where('personal_details_id', $personalId)
+            ->where('full_name', $fullName)
+            ->first();
+
+        if ($existing) {
+            $this->shareholderModel->update($existing['id'], $data);
+        } else {
+            $this->shareholderModel->insert($data);
+        }
+
+        $shareholdersUpdated[] = $data;
+    }
+
+    // Build updated HTML for review table
+    $updatedHtml = '';
+    foreach ($shareholdersUpdated as $i => $s) {
+        $updatedHtml .= '<tr>';
+        $updatedHtml .= '<td>'.($i+1).'</td>';
+        $updatedHtml .= '<td>'.esc($s['full_name']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['national_id']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['nationality']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['gender']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['date_of_birth']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['residential_address']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['marital_status']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['city']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['email']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['phone_number']).'</td>';
+        $updatedHtml .= '<td>'.esc($s['shareholding']).'%</td>';
+        $updatedHtml .= '<td>'.($s['is_director'] ? 'Yes' : 'No').'</td>';
+        $updatedHtml .= '<td>'.($s['is_beneficial_owner'] ? 'Yes' : 'No').'</td>';
+
+        foreach (['id_document','proof_of_residence','passport_photo','share_certificate','company_registration_doc'] as $fileField) {
+            $updatedHtml .= '<td>';
+            if (!empty($s[$fileField])) {
+                $updatedHtml .= '<a href="'.base_url('uploads/shareholders/'.$s[$fileField]).'" target="_blank">View</a>';
+            }
+            $updatedHtml .= '</td>';
+        }
+        $updatedHtml .= '</tr>';
+    }
+
+    return $this->response->setJSON([
+        'success' => true,
+        'updatedHtml' => $updatedHtml
+    ]);
+}
+
 
 
 };
