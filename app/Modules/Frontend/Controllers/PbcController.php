@@ -175,9 +175,8 @@ class PbcController extends Controller
     }
    public function processShareholders()
 {
-    // Enforce integer IDs and validate existence
-    $applicationId = (int) (session()->get('application_id') ?? 0);
-    $personalId    = (int) (session()->get('personal_id') ?? 0);
+    $applicationId = session()->get('application_id');
+    $personalId    = session()->get('personal_id');
 
     if (!$applicationId || !$personalId) {
         return redirect()->to(site_url('frontend/pbc/start-application'))

@@ -155,7 +155,6 @@ if (is_object($user)) {
         border-bottom: 1px solid rgba(0, 0, 0, 0.05);
         padding: 1.25rem 1.5rem;
     }
-    }
     
     .form-section {
         margin-bottom: 2.5rem;
@@ -424,7 +423,7 @@ if (is_object($user)) {
                             </h2>
                             <p class="mb-0 text-white-50 small">Manage your personal information and preferences</p>
                         </div>
-                        <a href="<?= site_url(route_to('dashboard')) ?>" class="btn btn-light btn-sm rounded-pill px-3">
+                        <a href="<?= site_url('frontend/dashboard') ?>" class="btn btn-light btn-sm rounded-pill px-3">
                             <i class="fas fa-arrow-left me-1"></i> Back to Dashboard
                         </a>
                     </div>
@@ -437,10 +436,7 @@ if (is_object($user)) {
                              alt="Profile Photo" 
                              class="profile-avatar"
                              id="profilePreview">
-                        <label for="profile_photo" class="profile-upload-btn" data-bs-toggle="tooltip" title="Update photo">
-                            <i class="fas fa-camera"></i>
-                            <input type="file" id="profile_photo" name="profile_photo" class="d-none" accept="image/*">
-                        </label>
+                        
                     </div>
 
                     <!-- Profile Form -->

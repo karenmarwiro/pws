@@ -416,7 +416,7 @@ class Frontend extends FrontendController
                     'type' => strpos(($app['reference_number'] ?? ''), 'PLC-') === 0 ? 'plc' : 'pbc',
                     'created_at' => $app['created_at'] ?? null,
                     'updated_at' => $app['updated_at'] ?? null,
-                    'company_name' => 'Application #' . ($app['reference_number'] ?? $app['id'])
+                    'company_name' => 'Application ' . ($app['reference_number'] ?? $app['id'])
                 ];
             }
             

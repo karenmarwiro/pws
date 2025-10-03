@@ -39,7 +39,7 @@
         }
         
         .card-header {
-            background: var(--primary-gradient);
+          background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
             padding: 1.5rem 2rem;
             border-bottom: none;
@@ -417,7 +417,7 @@
                     <small class="text-muted">Step 4 of 4 - Review and Submit</small>
                 </div>
     </div>
-
+    <?= $this->endSection() ?>
 
 <!-- Edit Personal Details Modal -->
 <div class="modal fade" id="editPersonalModal" tabindex="-1" aria-labelledby="editPersonalModalLabel" aria-hidden="true">
@@ -599,8 +599,6 @@
     </div>
   </div>
 </div>
-
-<?= $this->endSection() ?>
 <!-- end of shareholder details modal -->
 
 <?= $this->section('scripts') ?>

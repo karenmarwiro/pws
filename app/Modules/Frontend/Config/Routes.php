@@ -18,6 +18,7 @@ $routes->group('', ['namespace' => 'App\\Modules\\Frontend\\Controllers', 'filte
     $routes->get('frontend/apply', 'Frontend::apply', ['as' => 'apply']);
     $routes->get('frontend/profile', 'Frontend::profile');
     $routes->post('frontend/profile', 'Frontend::updateProfile');
+    $routes->get('frontend/applications', 'Frontend::applications');
 });
 
 // PBC module routes

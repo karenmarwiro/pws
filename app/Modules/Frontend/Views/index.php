@@ -3,8 +3,6 @@
 <?= $this->section('title') ?>Company Registration Experts in Zimbabwe | Alpha Empire<?= $this->endSection() ?>
 
 <?= $this->section('styles') ?>
-<!-- Tailwind CSS -->
-<script src="https://cdn.tailwindcss.com"></script>
 <!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

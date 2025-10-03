@@ -19,35 +19,6 @@ if (is_object($user)) {
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            corePlugins: { preflight: false },
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1b12cd',
-                        'primary-light': '#e0e7ff',
-                        'primary-dark': '#1b12cd',
-                        secondary: '#f59e0b',
-                        dark: '#1e293b',
-                        gray: '#64748b',
-                        light: '#f8fafc',
-                        'light-gray': '#f1f5f9',
-                        success: '#10b981',
-                        danger: '#ef4444',
-                    },
-                    borderRadius: {
-                        'custom': '0.5rem',
-                    },
-                    boxShadow: {
-                        'custom': '0 1px 3px rgba(0, 0, 0, 0.1)',
-                        'custom-hover': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -284,9 +255,11 @@ if (is_object($user)) {
                     <img src="<?= base_url('assets/img/Picture1.jpg') ?>" alt="Alpha Empire Logo">
                     <span>Alpha Empire</span>
                 </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" style="z-index: 10001;">
+                
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
+                
                 <div class="collapse navbar-collapse" id="navbarNav">
                     <ul class="navbar-nav me-auto">
                         <li class="nav-item">
@@ -307,31 +280,31 @@ if (is_object($user)) {
                         </li>
                         <?php endif; ?>
                     </ul>
-                    <ul class="navbar-nav align-items-lg-center">
+                    
+                    <ul class="navbar-nav ms-auto align-items-lg-center">
                         <?php if (session()->has('user')): ?>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle d-flex align-items-center px-3" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    
-                                    <span class="d-none d-lg-inline"><?= esc($user['first_name'] ?? 'User') ?></span>
-                                    <i class="fas fa-chevron-down ms-1 d-none d-lg-inline" style="font-size: 0.8rem; opacity: 0.7;"></i>
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span class="me-2"><?= esc($user['first_name'] ?? 'User') ?></span>
+                                    <i class="fas fa-user-circle"></i>
                                 </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                                     <li>
                                         <a class="dropdown-item" href="<?= base_url('frontend/profile') ?>">
-                                            <i class="fas fa-user"></i> Profile
+                                            <i class="fas fa-user me-2"></i> Profile
                                         </a>
                                     </li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <a class="dropdown-item text-danger" href="<?= base_url('logout') ?>">
-                                            <i class="fas fa-sign-out-alt"></i> Logout
+                                            <i class="fas fa-sign-out-alt me-2"></i> Logout
                                         </a>
                                     </li>
                                 </ul>
                             </li>
                         <?php else: ?>
                             <li class="nav-item me-2">
-                                <a class="nav-link px-3" href="<?= base_url('login') ?>">
+                                <a class="nav-link" href="<?= base_url('login') ?>">
                                     Sign In
                                 </a>
                             </li>
@@ -349,19 +322,43 @@ if (is_object($user)) {
     
     <script>
         // Add scroll effect to navbar
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 50) {
-                document.querySelector('.navbar').classList.add('scrolled');
-            } else {
-                document.querySelector('.navbar').classList.remove('scrolled');
-            }
-        });
-        
-        // Initialize navbar state on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Navbar scroll effect
+            window.addEventListener('scroll', function() {
+                const navbar = document.querySelector('.navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+
+            // Initialize navbar state on page load
             if (window.scrollY > 50) {
                 document.querySelector('.navbar').classList.add('scrolled');
             }
+
+            // Initialize dropdowns
+            const dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            dropdownElementList.forEach(function(dropdownToggleEl) {
+                // Only initialize if not already initialized
+                if (!bootstrap.Dropdown.getInstance(dropdownToggleEl)) {
+                    new bootstrap.Dropdown(dropdownToggleEl);
+                }
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!event.target.closest('.dropdown')) {
+                    const dropdowns = document.querySelectorAll('.dropdown-toggle');
+                    dropdowns.forEach(function(dropdownToggle) {
+                        const dropdown = bootstrap.Dropdown.getInstance(dropdownToggle);
+                        if (dropdown) {
+                            dropdown.hide();
+                        }
+                    });
+                }
+            });
         });
     </script>
 
@@ -373,17 +370,18 @@ if (is_object($user)) {
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-900 text-gray-300 py-8 mt-auto w-full">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
+    <footer class="bg-dark text-white py-4 mt-auto w-100">
+        <div class="container">
+            <div class="row align-items-center">
                 <!-- Branding -->
-                <div class="flex items-center space-x-3 mb-6 md:mb-0">
-                    <img src="<?= base_url('assets/img/Picture1.jpg') ?>" alt="Alpha Empire Logo" class="h-8">
-                    <span class="text-xl font-bold text-white">Alpha <span class="text-blue-500">Empire</span></span>
+                <div class="col-md-4 mb-3 mb-md-0 d-flex align-items-center">
+                    <img src="<?= base_url('assets/img/Picture1.jpg') ?>" alt="Alpha Empire Logo" style="height: 2rem;">
+                    <span class="ms-2 h4 mb-0 fw-bold">Alpha <span class="text-primary">Empire</span></span>
                 </div>
 
                 <!-- Contact Info -->
-                <div class="grid grid-cols-2 gap-6 text-sm">
+                <div class="col-md-8">
+                    <div class="row">
                     <a href="mailto:admin@alphaempire.co.zw" class="flex items-center text-gray-400 hover:text-white transition-colors">
                         <svg class="h-4 w-4 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
